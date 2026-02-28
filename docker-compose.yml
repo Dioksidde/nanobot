@@ -3,7 +3,34 @@ x-common-config: &common-config
     context: .
     dockerfile: Dockerfile
   volumes:
-    - ~/.nanobot:/root/.nanobot
+    - nanobot-data:/home/nanobot/.nanobot
+  environment:
+    - NANOBOT_OPENROUTER_API_KEY
+    - NANOBOT_ANTHROPIC_API_KEY
+    - NANOBOT_OPENAI_API_KEY
+    - NANOBOT_DEEPSEEK_API_KEY
+    - NANOBOT_GROQ_API_KEY
+    - NANOBOT_GEMINI_API_KEY
+    - NANOBOT_CUSTOM_API_KEY
+    - NANOBOT_CUSTOM_API_BASE
+    - NANOBOT_MODEL
+    - NANOBOT_MAX_TOKENS
+    - NANOBOT_TEMPERATURE
+    - NANOBOT_TELEGRAM_ENABLED
+    - NANOBOT_TELEGRAM_TOKEN
+    - NANOBOT_DISCORD_ENABLED
+    - NANOBOT_DISCORD_TOKEN
+    - NANOBOT_SLACK_ENABLED
+    - NANOBOT_SLACK_BOT_TOKEN
+    - NANOBOT_SLACK_APP_TOKEN
+    - NANOBOT_FEISHU_ENABLED
+    - NANOBOT_FEISHU_APP_ID
+    - NANOBOT_FEISHU_APP_SECRET
+    - NANOBOT_WHATSAPP_ENABLED
+    - NANOBOT_WHATSAPP_BRIDGE_URL
+    - NANOBOT_BRAVE_API_KEY
+    - NANOBOT_RESTRICT_TO_WORKSPACE
+    - NANOBOT_GATEWAY_PORT
 
 services:
   nanobot-gateway:
@@ -13,6 +40,12 @@ services:
     restart: unless-stopped
     ports:
       - 18790:18790
+    healthcheck:
+      test: ["/app/healthcheck.sh"]
+      interval: 15s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
     deploy:
       resources:
         limits:
@@ -21,7 +54,7 @@ services:
         reservations:
           cpus: '0.25'
           memory: 256M
-  
+
   nanobot-cli:
     <<: *common-config
     profiles:
@@ -29,3 +62,6 @@ services:
     command: ["status"]
     stdin_open: true
     tty: true
+
+volumes:
+  nanobot-data:

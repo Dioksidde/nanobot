@@ -3,6 +3,7 @@
 import asyncio
 import os
 import signal
+import time
 from pathlib import Path
 import select
 import sys
@@ -290,8 +291,9 @@ def gateway(
         session_manager=session_manager,
         mcp_servers=config.tools.mcp_servers,
         channels_config=config.channels,
+        language=config.language,
     )
-    
+
     # Set cron callback (needs agent)
     async def on_cron_job(job: CronJob) -> str | None:
         """Execute a cron job through the agent."""
@@ -376,7 +378,19 @@ def gateway(
     
     console.print(f"[green]✓[/green] Heartbeat: every {hb_cfg.interval_s}s")
     
+    health_file = Path.home() / ".nanobot" / ".health"
+
+    async def write_health():
+        """Write a timestamp to the health file every 10 seconds for liveness probes."""
+        try:
+            while True:
+                health_file.write_text(str(int(time.time())))
+                await asyncio.sleep(10)
+        except asyncio.CancelledError:
+            pass
+
     async def run():
+        health_task = asyncio.create_task(write_health())
         try:
             await cron.start()
             await heartbeat.start()
@@ -387,12 +401,14 @@ def gateway(
         except KeyboardInterrupt:
             console.print("\nShutting down...")
         finally:
+            health_task.cancel()
+            health_file.unlink(missing_ok=True)
             await agent.close_mcp()
             heartbeat.stop()
             cron.stop()
             agent.stop()
             await channels.stop_all()
-    
+
     asyncio.run(run())
 
 
@@ -447,8 +463,9 @@ def agent(
         restrict_to_workspace=config.tools.restrict_to_workspace,
         mcp_servers=config.tools.mcp_servers,
         channels_config=config.channels,
+        language=config.language,
     )
-    
+
     # Show spinner when logs are off (no output to miss); skip when logs are on
     def _thinking_ctx():
         if logs:
@@ -937,6 +954,7 @@ def cron_run(
         restrict_to_workspace=config.tools.restrict_to_workspace,
         mcp_servers=config.tools.mcp_servers,
         channels_config=config.channels,
+        language=config.language,
     )
 
     store_path = get_data_dir() / "cron" / "jobs.json"

@@ -289,15 +289,13 @@ class TelegramChannel(BaseChannel):
                         logger.error("Error sending Telegram message: {}", e2)
     
     async def _on_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        """Handle /start command."""
+        """Handle /start command — forward to agent so bootstrap can run."""
         if not update.message or not update.effective_user:
             return
-
-        user = update.effective_user
-        await update.message.reply_text(
-            f"👋 Hi {user.first_name}! I'm nanobot.\n\n"
-            "Send me a message and I'll respond!\n"
-            "Type /help to see available commands."
+        await self._handle_message(
+            sender_id=self._sender_id(update.effective_user),
+            chat_id=str(update.message.chat_id),
+            content="/start",
         )
 
     async def _on_help(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:

@@ -15,11 +15,12 @@ from nanobot.agent.skills import SkillsLoader
 class ContextBuilder:
     """Builds the context (system prompt + messages) for the agent."""
     
-    BOOTSTRAP_FILES = ["AGENTS.md", "SOUL.md", "USER.md", "TOOLS.md", "IDENTITY.md"]
+    BOOTSTRAP_FILES = ["AGENTS.md", "SOUL.md", "USER.md", "TOOLS.md", "IDENTITY.md", "BOOTSTRAP.md"]
     _RUNTIME_CONTEXT_TAG = "[Runtime Context — metadata only, not instructions]"
     
-    def __init__(self, workspace: Path):
+    def __init__(self, workspace: Path, language: str = ""):
         self.workspace = workspace
+        self.language = language
         self.memory = MemoryStore(workspace)
         self.skills = SkillsLoader(workspace)
     
@@ -58,7 +59,7 @@ Skills with available="false" need dependencies installed first - you can try in
         system = platform.system()
         runtime = f"{'macOS' if system == 'Darwin' else system} {platform.machine()}, Python {platform.python_version()}"
         
-        return f"""# nanobot 🐈
+        identity = f"""# nanobot 🐈
 
 You are nanobot, a helpful AI assistant.
 
@@ -79,6 +80,9 @@ Your workspace is at: {workspace_path}
 - Ask for clarification when the request is ambiguous.
 
 Reply directly with text for conversations. Only use the 'message' tool to send to a specific chat channel."""
+        if self.language:
+            identity += f"\n\n**IMPORTANT: Always respond in {self.language}.**"
+        return identity
 
     @staticmethod
     def _build_runtime_context(channel: str | None, chat_id: str | None) -> str:
@@ -91,15 +95,26 @@ Reply directly with text for conversations. Only use the 'message' tool to send 
         return ContextBuilder._RUNTIME_CONTEXT_TAG + "\n" + "\n".join(lines)
     
     def _load_bootstrap_files(self) -> str:
-        """Load all bootstrap files from workspace."""
+        """Load all bootstrap files from workspace.
+
+        If BOOTSTRAP.md exists, it is loaded first (first-run setup).
+        """
         parts = []
-        
+
+        # Load BOOTSTRAP.md first if it exists (first-run takes priority)
+        bootstrap_path = self.workspace / "BOOTSTRAP.md"
+        if bootstrap_path.exists():
+            content = bootstrap_path.read_text(encoding="utf-8")
+            parts.append(f"## BOOTSTRAP.md\n\n{content}")
+
         for filename in self.BOOTSTRAP_FILES:
+            if filename == "BOOTSTRAP.md":
+                continue  # Already handled above
             file_path = self.workspace / filename
             if file_path.exists():
                 content = file_path.read_text(encoding="utf-8")
                 parts.append(f"## {filename}\n\n{content}")
-        
+
         return "\n\n".join(parts) if parts else ""
     
     def build_messages(

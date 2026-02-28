@@ -1,23 +1,18 @@
-# Long-term Memory
+# MEMORY.md - Long-Term Memory
 
-This file stores important information that should persist across sessions.
+_Your curated memories. The distilled essence, not raw logs._
 
-## User Information
+Write significant events, thoughts, decisions, opinions, and lessons learned here.
+Review daily notes periodically and promote what's worth keeping.
 
-(Important facts about the user)
+## User
 
-## Preferences
+_(Who they are, what matters to them)_
 
-(User preferences learned over time)
+## Lessons Learned
 
-## Project Context
+_(Mistakes made, patterns noticed, things to remember)_
 
-(Information about ongoing projects)
+## Ongoing Context
 
-## Important Notes
-
-(Things to remember)
-
----
-
-*This file is automatically updated by nanobot when important information should be remembered.*
+_(Active projects, recurring topics, current priorities)_

@@ -10,4 +10,25 @@ build/
 .assets
 node_modules/
 bridge/dist/
-workspace/
+
+# Docker & CI
+docker-compose*.yml
+.github/
+.nanobot/
+
+# Tests & caches
+tests/
+.pytest_cache/
+.ruff_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# Media & docs (not needed in image)
+case/
+*.png
+*.gif
+*.log
+SECURITY.md
+COMMUNICATION.md

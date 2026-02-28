@@ -62,9 +62,11 @@ class AgentLoop:
         session_manager: SessionManager | None = None,
         mcp_servers: dict | None = None,
         channels_config: ChannelsConfig | None = None,
+        language: str = "",
     ):
         from nanobot.config.schema import ExecToolConfig
         self.bus = bus
+        self.language = language
         self.channels_config = channels_config
         self.provider = provider
         self.workspace = workspace
@@ -78,7 +80,7 @@ class AgentLoop:
         self.cron_service = cron_service
         self.restrict_to_workspace = restrict_to_workspace
 
-        self.context = ContextBuilder(workspace)
+        self.context = ContextBuilder(workspace, language=language)
         self.sessions = session_manager or SessionManager(workspace)
         self.tools = ToolRegistry()
         self.subagents = SubagentManager(
